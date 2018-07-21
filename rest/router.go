@@ -28,7 +28,7 @@ func MakeGetInvoiceHandler(usecase foundation.Usecase) http.HandlerFunc {
 
 func MakeCreateInvoiceHandler(usecase foundation.Usecase) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/vnd.restvoice+json")
+		w.Header().Set("Content-Type", "application/vnd.restvoice.v1.hal+json")
 		body, _ := ioutil.ReadAll(r.Body)
 		w.Write(usecase.Run(body).([]byte))
 	}
