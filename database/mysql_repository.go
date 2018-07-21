@@ -20,8 +20,8 @@ func (r *MySQLRepository) Invoices() []*domain.Invoice {
 	return invoices
 }
 
-func (r *MySQLRepository) GetInvoice(id int) *domain.Invoice {
-	return r.invoices[id]
+func (r *MySQLRepository) GetInvoice(id int) domain.Invoice {
+	return *r.invoices[id]
 }
 
 func (r *MySQLRepository) CreateInvoice(invoice *domain.Invoice) {

@@ -8,16 +8,16 @@ import (
 	"log"
 )
 
-type RVInvoicePresenter struct {
+type HALInvoicePresenter struct {
 }
 
-func NewRVInvoicePresenter() RVInvoicePresenter {
-	return RVInvoicePresenter{}
+func NewHALInvoicePresenter() HALInvoicePresenter {
+	return HALInvoicePresenter{}
 }
 
-func (j RVInvoicePresenter) present(i interface{}) interface{} {
+func (j HALInvoicePresenter) present(i interface{}) interface{} {
 	invoice := i.(*domain.Invoice)
-	b, _ := json.Marshal(decorate(invoice))
+	b, _ := json.Marshal(decorate(*invoice))
 	return b
 }
 
@@ -26,11 +26,11 @@ type Link struct {
 }
 
 type LinksDecorator struct {
-	*domain.Invoice
+	domain.Invoice
 	Links map[string]Link `json:"_links"`
 }
 
-func decorate(i *domain.Invoice) LinksDecorator {
+func decorate(i domain.Invoice) LinksDecorator {
 	var links = make(map[string]Link)
 	links["self"] = Link{fmt.Sprintf("/invoice/%d", i.Id)}
 	for _, o := range domain.GetOperations(i) {
@@ -43,7 +43,7 @@ func decorate(i *domain.Invoice) LinksDecorator {
 	return LinksDecorator{Invoice: i, Links: links}
 }
 
-func translate(operation domain.Operation, invoice *domain.Invoice) (Link, error) {
+func translate(operation domain.Operation, invoice domain.Invoice) (Link, error) {
 	switch operation.Name {
 	case "book":
 		return Link{fmt.Sprintf("/book/%d", invoice.Id)}, nil
@@ -58,17 +58,17 @@ func translate(operation domain.Operation, invoice *domain.Invoice) (Link, error
 	}
 }
 
-func (j RVInvoicePresenter) Present(i interface{}) interface{} {
+func (j HALInvoicePresenter) Present(i interface{}) interface{} {
 	var b []byte
 
 	switch t := i.(type) {
-	case []*domain.Invoice:
+	case []domain.Invoice:
 		var result []LinksDecorator
 		for _, i := range t {
 			result = append(result, decorate(i))
 		}
 		b, _ = json.Marshal(result)
-	case *domain.Invoice:
+	case domain.Invoice:
 		b, _ = json.Marshal(decorate(t))
 	}
 

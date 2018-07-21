@@ -26,5 +26,5 @@ func NewCreateInvoice(invoiceConsumer foundation.Consumer, presenter foundation.
 func (u CreateInvoice) Run(i ...interface{}) interface{} {
 	invoice := u.invoiceConsumer.Consume(i[0]).(*domain.Invoice)
 	u.repository.CreateInvoice(invoice)
-	return u.presenter.Present(invoice)
+	return u.presenter.Present(*invoice)
 }

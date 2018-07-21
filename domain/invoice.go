@@ -10,11 +10,11 @@ type Position struct {
 }
 
 type Invoice struct {
-	Id         int                        `json:"id"`
-	Status     string                     `json:"status"`
-	CustomerId int                        `json:"customerId"`
-	Year       int                        `json:"year"`
-	Month      int                        `json:"month"`
+	Id         int                         `json:"id"`
+	Status     string                      `json:"status"`
+	CustomerId int                         `json:"customerId"`
+	Year       int                         `json:"year"`
+	Month      int                         `json:"month"`
 	Positions  map[int]map[string]Position `json:"positions"`
 }
 

@@ -4,7 +4,7 @@ type Operation struct {
 	Name string
 }
 
-func GetOperations(invoice *Invoice) []Operation {
+func GetOperations(invoice Invoice) []Operation {
 	switch invoice.Status {
 	case "open":
 		return []Operation{{"book"}, {"charge"}}
