@@ -1,6 +1,9 @@
 package database
 
-import "github.com/rwirdemann/restvoice/domain"
+import (
+	"github.com/rwirdemann/restvoice/domain"
+	"strings"
+)
 
 type MySQLRepository struct {
 	nextId   int
@@ -23,8 +26,14 @@ func (r *MySQLRepository) GetBookingsByInvoiceId(id int) []domain.Booking {
 	return bookings
 }
 
-func (r *MySQLRepository) GetInvoice(id int) domain.Invoice {
-	return *r.invoices[id]
+func (r *MySQLRepository) GetInvoice(id int, join ...string) domain.Invoice {
+	i := *r.invoices[id]
+	if len(join) > 0 {
+		if strings.Contains(join[0], "bookings") {
+			i.Bookings = r.GetBookingsByInvoiceId(id)
+		}
+	}
+	return i
 }
 
 func (r *MySQLRepository) CreateInvoice(invoice *domain.Invoice) domain.Invoice {
@@ -46,6 +55,6 @@ func (r *MySQLRepository) CreateBooking(booking domain.Booking) {
 }
 
 func (r *MySQLRepository) getNextId() int {
-	r.nextId = r.nextId + 1;
+	r.nextId = r.nextId + 1
 	return r.nextId
 }

@@ -21,7 +21,7 @@ func main() {
 
 	// Testdata
 	invoice := repository.CreateInvoice(&domain.Invoice{Year: 2018, Month: 12})
-	repository.CreateBooking(domain.Booking{InvoiceId: invoice.Id, Hours: 2, Description: "Programmiert", Day: 12, ActivityId: 1, ProjectId: 1})
+	repository.CreateBooking(domain.Booking{InvoiceId: invoice.Id, Hours: 2, Description: "Tests refaktorisiert", Day: 12, ActivityId: 1, ProjectId: 1})
 
 	// Usecase Layer
 	createInvoice := usecase.NewCreateInvoice(invoiceConsumer, invoicePresenter, repository)

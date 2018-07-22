@@ -3,11 +3,10 @@ package usecase
 import (
 	"github.com/rwirdemann/restvoice/foundation"
 	"github.com/rwirdemann/restvoice/domain"
-	"strings"
 )
 
 type GetInvoiceRepository interface {
-	GetInvoice(id int) domain.Invoice
+	GetInvoice(id int, join ...string) domain.Invoice
 	GetBookingsByInvoiceId(id int) []domain.Booking
 }
 
@@ -29,15 +28,11 @@ func NewGetInvoice(consumer foundation.Consumer, expandConsumer foundation.Consu
 }
 
 func (u GetInvoice) Run(i ...interface{}) interface{} {
-	// Fetch invoice from database
 	id := u.invoiceIdConsumer.Consume(i[0]).(int)
-	invoice := u.repository.GetInvoice(id)
-
-	// Join additional data
 	join := u.joinConsumer.Consume(i[0]).(string)
-	if strings.Contains(join, "bookings") {
-		invoice.Bookings = u.repository.GetBookingsByInvoiceId(id)
-	}
+
+	// Fetch invoice from database, join additional data
+	invoice := u.repository.GetInvoice(id, join)
 
 	return u.presenter.Present(invoice)
 }
