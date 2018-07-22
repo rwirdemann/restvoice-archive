@@ -29,7 +29,7 @@ func NewGetInvoice(consumer foundation.Consumer, expandConsumer foundation.Consu
 
 func (u GetInvoice) Run(i ...interface{}) interface{} {
 	id := u.invoiceIdConsumer.Consume(i[0]).(int)
-	join := u.joinConsumer.Consume(i[0]).(string)
+	join := u.joinConsumer.Consume(i[1]).(string)
 
 	// Fetch invoice from database, join additional data
 	invoice := u.repository.GetInvoice(id, join)

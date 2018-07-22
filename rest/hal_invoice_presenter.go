@@ -84,6 +84,14 @@ func (j HALInvoicePresenter) Present(i interface{}) interface{} {
 func (j HALInvoicePresenter) present(i interface{}) interface{} {
 	invoice := i.(domain.Invoice)
 	halInvoice := decorate(invoice)
+
+	// Embed bookings, if available
+	if len(invoice.Bookings) > 0 {
+		halInvoice.Embedded = &Embedded{
+			Bookings: invoice.Bookings,
+		}
+	}
+
 	b, _ := json.Marshal(halInvoice)
 	return b
 }

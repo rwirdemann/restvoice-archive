@@ -17,7 +17,7 @@ func NewRouter() *mux.Router {
 func MakeGetInvoiceHandler(usecase foundation.Usecase) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", contentType)
-		w.Write(usecase.Run(r).([]byte))
+		w.Write(usecase.Run(r, r).([]byte))
 	}
 }
 
