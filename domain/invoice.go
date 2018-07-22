@@ -1,9 +1,5 @@
 package domain
 
-import (
-	"fmt"
-)
-
 type Position struct {
 	Hours float32
 	Price float32
@@ -15,7 +11,8 @@ type Invoice struct {
 	CustomerId int                         `json:"customerId"`
 	Year       int                         `json:"year"`
 	Month      int                         `json:"month"`
-	Positions  map[int]map[string]Position `json:"positions"`
+	Positions  map[int]map[string]Position `json:"positions,omitempty"`
+	Bookings   []Booking                   `json:"-"`
 }
 
 func (i *Invoice) AddPosition(projectId int, title string, hours float32, rate float32) {
@@ -34,15 +31,4 @@ func (i *Invoice) AddPosition(projectId int, title string, hours float32, rate f
 	} else {
 		i.Positions[projectId][title] = Position{Hours: hours, Price: hours * rate}
 	}
-}
-
-func (i *Invoice) String() string {
-	s := ""
-	for k, p := range i.Positions {
-		s = fmt.Sprintf("%s\nProjekt: %d", s, k)
-		for activity, hoursAndPrice := range p {
-			s = fmt.Sprintf("%s\n %s: %.2f => %2.f", s, activity, hoursAndPrice.Hours, hoursAndPrice.Price)
-		}
-	}
-	return s
 }

@@ -15,12 +15,17 @@ func main() {
 	// Adapter Layer
 	invoiceConsumer := rest.NewJSONConsumer(&domain.Invoice{})
 	invoiceIdConsumer := rest.NewPathVariableConsumer("id")
+	expandConsumer := rest.NewQueryVariableConsumer("expand")
 	invoicePresenter := rest.NewHALInvoicePresenter()
 	repository := database.NewMySQLRepository()
-	createInvoice := usecase.NewCreateInvoice(invoiceConsumer, invoicePresenter, repository)
+
+	// Testdata
+	invoice := repository.CreateInvoice(&domain.Invoice{Year: 2018, Month: 12})
+	repository.CreateBooking(domain.Booking{InvoiceId: invoice.Id, Hours: 2, Description: "Programmiert", Day: 12, ActivityId: 1, ProjectId: 1})
 
 	// Usecase Layer
-	getInvoice := usecase.NewGetInvoice(invoiceIdConsumer, invoicePresenter, repository)
+	createInvoice := usecase.NewCreateInvoice(invoiceConsumer, invoicePresenter, repository)
+	getInvoice := usecase.NewGetInvoice(invoiceIdConsumer, expandConsumer, invoicePresenter, repository)
 
 	// HTTP
 	r := mux.NewRouter()

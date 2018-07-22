@@ -8,11 +8,15 @@ type QueryVariableConsumer struct {
 	queryVarName string
 }
 
-func NewQueryVariableConsumer(pathVarName string) PathVariableConsumer {
-	return PathVariableConsumer{pathVarName: pathVarName}
+func NewQueryVariableConsumer(queryVarName string) QueryVariableConsumer {
+	return QueryVariableConsumer{queryVarName: queryVarName}
 }
 
 func (c QueryVariableConsumer) Consume(request interface{}) interface{} {
 	r := request.(*http.Request)
-	return r.URL.Query()[c.queryVarName]
+	q := r.URL.Query()
+	if v, ok := q[c.queryVarName]; ok {
+		return v[0]
+	}
+	return nil
 }

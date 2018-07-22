@@ -19,18 +19,22 @@ type Link struct {
 	Href string `json:"href"`
 }
 
+type Embedded struct {
+	Bookings []domain.Booking `json:"bookings,omitempty"`
+}
+
 type HALDecorator struct {
 	domain.Invoice
-	Links    map[string]Link `json:"_links"`
-	Embedded interface{}     `json:"_embedded"`
+	Links    map[domain.Operation]Link `json:"_links"`
+	Embedded *Embedded                 `json:"_embedded,omitempty"`
 }
 
 func decorate(i domain.Invoice) HALDecorator {
-	var links = make(map[string]Link)
+	var links = make(map[domain.Operation]Link)
 	links["self"] = Link{fmt.Sprintf("/invoice/%d", i.Id)}
 	for _, o := range domain.GetOperations(i) {
 		if l, err := translate(o, i); err == nil {
-			links[o.Name] = l
+			links[o] = l
 		} else {
 			log.Print(err)
 		}
@@ -39,7 +43,7 @@ func decorate(i domain.Invoice) HALDecorator {
 }
 
 func translate(operation domain.Operation, invoice domain.Invoice) (Link, error) {
-	switch operation.Name {
+	switch operation {
 	case "book":
 		return Link{fmt.Sprintf("/book/%d", invoice.Id)}, nil
 	case "charge":
@@ -49,7 +53,7 @@ func translate(operation domain.Operation, invoice domain.Invoice) (Link, error)
 	case "archive":
 		return Link{fmt.Sprintf("/payment/%d", invoice.Id)}, nil
 	default:
-		return Link{}, errors.New(fmt.Sprintf("No translation found for operartion %s", operation.Name))
+		return Link{}, errors.New(fmt.Sprintf("No translation found for operartion %s", operation))
 	}
 }
 
@@ -64,12 +68,22 @@ func (j HALInvoicePresenter) Present(i interface{}) interface{} {
 		}
 		b, _ = json.Marshal(result)
 	case domain.Invoice:
-		decorator := decorate(t)
-		decorator.Embedded = []domain.Booking{
-			{Hours: 3, Description: "Aufgeräumt"},
+		invoice := i.(domain.Invoice)
+		result := decorate(invoice)
+		if len(invoice.Bookings) > 0 {
+			result.Embedded = &Embedded{
+				Bookings: invoice.Bookings,
+			}
 		}
-		b, _ = json.Marshal(decorator)
+		b, _ = json.Marshal(result)
 	}
 
+	return b
+}
+
+func (j HALInvoicePresenter) present(i interface{}) interface{} {
+	invoice := i.(domain.Invoice)
+	halInvoice := decorate(invoice)
+	b, _ := json.Marshal(halInvoice)
 	return b
 }
