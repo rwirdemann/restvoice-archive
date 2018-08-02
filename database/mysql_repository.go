@@ -5,11 +5,12 @@ import (
 	"strings"
 	"time"
 )
+import _ "github.com/go-sql-driver/mysql"
 
 type MySQLRepository struct {
-	nextId   int
-	invoices map[int]*domain.Invoice
-	bookings map[int]map[int]domain.Booking
+	nextId     int
+	invoices   map[int]*domain.Invoice
+	bookings   map[int]map[int]domain.Booking
 	activities map[string]map[int]domain.Activity
 }
 

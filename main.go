@@ -9,9 +9,16 @@ import (
 	"github.com/rwirdemann/restvoice/domain"
 	"github.com/rwirdemann/restvoice/rest"
 	"github.com/rwirdemann/restvoice/usecase"
+	"github.com/joho/godotenv"
+	"log"
 )
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	// Adapter Layer
 	invoiceConsumer := rest.NewJSONConsumer(&domain.Invoice{})
 	invoiceIdConsumer := rest.NewPathVariableConsumer("id")
