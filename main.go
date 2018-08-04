@@ -21,9 +21,11 @@ func main() {
 
 	// Adapter Layer
 	invoiceConsumer := rest.NewJSONConsumer(&domain.Invoice{})
+	bookingConsumer := rest.NewJSONConsumer(&domain.Booking{})
 	invoiceIdConsumer := rest.NewPathVariableConsumer("id")
 	expandConsumer := rest.NewQueryVariableConsumer("expand")
 	invoicePresenter := rest.NewHALInvoicePresenter()
+	present := rest.NewJSONPresenter()
 	userConsumer := rest.NewUserConsumer()
 	activitiesPresenter := rest.NewActivitiesPresenter()
 	repository := database.NewMySQLRepository()
@@ -37,16 +39,19 @@ func main() {
 
 	// Usecase Layer
 	createInvoice := usecase.NewCreateInvoice(invoiceConsumer, invoicePresenter, repository)
+	createBooking := usecase.NewCreateBooking(bookingConsumer, invoiceIdConsumer, present, repository)
 	getInvoice := usecase.NewGetInvoice(invoiceIdConsumer, expandConsumer, invoicePresenter, repository)
 	getActivities := usecase.NewGetActivities(userConsumer, activitiesPresenter, repository)
 
 	// HTTP
 	r := mux.NewRouter()
 	r.HandleFunc("/invoice", rest.JwtAuth(rest.MakeCreateInvoiceHandler(createInvoice))).Methods("POST")
+	r.HandleFunc("/booking/{id:[0-9]+}", rest.JwtAuth(rest.MakeCreateBookingHandler(createBooking))).Methods("POST")
 	r.HandleFunc("/invoice/{id:[0-9]+}", rest.MakeGetInvoiceHandler(getInvoice)).Methods("GET")
 	r.HandleFunc("/activities", rest.MakeGetActivitiesHandler(getActivities)).Methods("GET")
 	fmt.Println("POST http://localhost:8080/invoice")
 	fmt.Println("GET http://localhost:8080/invoice/{id}")
+	fmt.Println("POST http://localhost:8080/booking/1")
 	fmt.Println("GET http://localhost:8080/activities")
 	http.ListenAndServe(":8080", cors.AllowAll().Handler(r))
 }
