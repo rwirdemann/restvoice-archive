@@ -8,6 +8,7 @@ import (
 	"strings"
 	"github.com/rwirdemann/restvoice/foundation"
 	"os"
+			"github.com/rwirdemann/restvoice/domain"
 )
 
 const contentType = "application/vnd.restvoice.v1.hal+json"
@@ -26,15 +27,17 @@ func MakeGetInvoiceHandler(usecase foundation.Usecase) http.HandlerFunc {
 
 func MakeCreateInvoiceHandler(usecase foundation.Usecase) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if !basicAuth(r) {
-			w.Header().Set("WWW-Authenticate", "Basic realm=\"restvoice.org\"")
-			w.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-
 		w.Header().Set("Content-Type", contentType)
 		body, _ := ioutil.ReadAll(r.Body)
 		w.Write(usecase.Run(body).([]byte))
+	}
+}
+
+func MakeCreateBookingHandler(usecase foundation.Usecase) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", contentType)
+		body, _ := ioutil.ReadAll(r.Body)
+		w.Write(usecase.Run(body, r).([]byte))
 	}
 }
 
@@ -89,3 +92,29 @@ func MakeGetActivitiesHandler(usecase foundation.Usecase) http.HandlerFunc {
 func truncate(t time.Time) time.Time {
 	return t.Truncate(time.Duration(time.Second))
 }
+
+type RoleRepository interface {
+	GetProject(id int) domain.Project
+	GetCustomer(id int) domain.Customer
+}
+
+func assertOwnsCustomer(next http.HandlerFunc, repository RoleRepository) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		token := extractJwtFromHeader(r.Header)
+		jsonConsumer := NewJSONConsumer(domain.Booking{})
+		booking := jsonConsumer.Consume(r.Body).(domain.Booking)
+		if ownsCustomer(token, booking.ProjectId, repository) {
+			next.ServeHTTP(w, r)
+			return
+		}
+		w.WriteHeader(http.StatusForbidden)
+	}
+}
+
+func ownsCustomer(token string, projectId int, repository RoleRepository) bool {
+	userId := claim(token, "sub")
+	project := repository.GetProject(projectId)
+	customer := repository.GetCustomer(project.CustomerId)
+	return customer.UserId == userId
+}
+

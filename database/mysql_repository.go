@@ -11,6 +11,8 @@ type MySQLRepository struct {
 	nextId     int
 	invoices   map[int]*domain.Invoice
 	bookings   map[int]map[int]domain.Booking
+	projects   map[int]domain.Project
+	customers  map[int]domain.Customer
 	activities map[string]map[int]domain.Activity
 }
 
@@ -26,6 +28,8 @@ func NewMySQLRepository() *MySQLRepository {
 	r := MySQLRepository{}
 	r.invoices = make(map[int]*domain.Invoice)
 	r.bookings = make(map[int]map[int]domain.Booking)
+	r.projects = make(map[int]domain.Project)
+	r.customers = make(map[int]domain.Customer)
 	r.activities = make(map[string]map[int]domain.Activity)
 	return &r
 }
@@ -48,6 +52,14 @@ func (r *MySQLRepository) GetInvoice(id int, join ...string) domain.Invoice {
 	return i
 }
 
+func (r *MySQLRepository) GetProject(id int) domain.Project {
+	return r.projects[id]
+}
+
+func (r *MySQLRepository) GetCustomer(id int) domain.Customer {
+	return r.customers[id]
+}
+
 func (r *MySQLRepository) CreateInvoice(invoice *domain.Invoice) domain.Invoice {
 	invoice.Id = r.getNextId()
 	invoice.Status = "open"
@@ -55,7 +67,7 @@ func (r *MySQLRepository) CreateInvoice(invoice *domain.Invoice) domain.Invoice 
 	return *invoice
 }
 
-func (r *MySQLRepository) CreateBooking(booking domain.Booking) {
+func (r *MySQLRepository) CreateBooking(booking domain.Booking) domain.Booking {
 	booking.Id = r.getNextId()
 	if bookings, ok := r.bookings[booking.InvoiceId]; ok {
 		bookings[booking.Id] = booking
@@ -64,6 +76,7 @@ func (r *MySQLRepository) CreateBooking(booking domain.Booking) {
 		bookings[booking.Id] = booking
 		r.bookings[booking.InvoiceId] = bookings
 	}
+	return booking
 }
 
 func (r *MySQLRepository) CreateActivity(activity domain.Activity) {
