@@ -1,4 +1,4 @@
-# restvoice.org
+# Restvoice.org
 
 Eine REST API zur Rechnungserstellung für Freiberufler.
 
@@ -10,7 +10,7 @@ http://restvoice.org/invoice
 
 POST    /invoice               => open
 
-POST    /invoice/1234/booking  => open
+POST    /booking/1234          => open
 
 PUT     /charge/1234           => payment expected
 

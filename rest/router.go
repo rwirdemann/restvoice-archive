@@ -7,9 +7,8 @@ import (
 	"time"
 	"strings"
 	"github.com/rwirdemann/restvoice/foundation"
-	"os"
-			"github.com/rwirdemann/restvoice/domain"
-)
+				"github.com/rwirdemann/restvoice/domain"
+		)
 
 const contentType = "application/vnd.restvoice.v1.hal+json"
 
@@ -39,19 +38,6 @@ func MakeCreateBookingHandler(usecase foundation.Usecase) http.HandlerFunc {
 		body, _ := ioutil.ReadAll(r.Body)
 		w.Write(usecase.Run(body, r).([]byte))
 	}
-}
-
-func basicAuth(r *http.Request) bool {
-	if os.Getenv("AUTHENTICATION") != "basic" {
-		return true
-	}
-
-	if username, password, ok := r.BasicAuth(); ok {
-		if username == "go" && password == "time" {
-			return true
-		}
-	}
-	return false
 }
 
 const layout = "Mon, _2 Jan 2006 15:04:05 GMT"

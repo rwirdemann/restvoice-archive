@@ -9,4 +9,8 @@ test:
 run:
 	go run main.go
 
-.PHONY: clean build linux clean test run install
+deploy: linux
+	scp keycloak_key.pub restvoice@178.128.203.76:~
+	ssh restvoice@178.128.203.76 "nohup ./restvoice &"
+
+.PHONY: deploy linux test run
