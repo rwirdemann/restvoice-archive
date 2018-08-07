@@ -7,13 +7,20 @@ import (
 	"time"
 	"strings"
 	"github.com/rwirdemann/restvoice/foundation"
-						)
+	"fmt"
+)
 
 const contentType = "application/vnd.restvoice.v1.hal+json"
 
 func NewRouter() *mux.Router {
 	r := mux.NewRouter()
 	return r
+}
+
+func MakeVersionHandler(githash string, buildstamp string) http.HandlerFunc  {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(fmt.Sprintf("Githash: %s Buildstamp: %s\n", githash, buildstamp)))
+	}
 }
 
 func MakeGetInvoiceHandler(usecase foundation.Usecase) http.HandlerFunc {
@@ -77,3 +84,4 @@ func MakeGetActivitiesHandler(usecase foundation.Usecase) http.HandlerFunc {
 func truncateToSeconds(t time.Time) time.Time {
 	return t.Truncate(time.Duration(time.Second))
 }
+

@@ -13,6 +13,12 @@ import (
 	"log"
 )
 
+var (
+	fileName   string
+	githash    string
+	buildstamp string
+)
+
 func main() {
 	err := godotenv.Load()
 	if err != nil {
@@ -45,6 +51,7 @@ func main() {
 
 	// HTTP
 	r := mux.NewRouter()
+	r.HandleFunc("/version", rest.MakeVersionHandler(githash, buildstamp)).Methods("GET")
 	r.HandleFunc("/invoice", rest.JwtAuth(rest.MakeCreateInvoiceHandler(createInvoice))).Methods("POST")
 	r.HandleFunc("/booking/{id:[0-9]+}", rest.JwtAuth(rest.MakeCreateBookingHandler(createBooking))).Methods("POST")
 	r.HandleFunc("/invoice/{id:[0-9]+}", rest.MakeGetInvoiceHandler(getInvoice)).Methods("GET")

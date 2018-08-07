@@ -15,9 +15,12 @@ const publicKeyFilePath = "keycloak_key.pub"
 
 var publicKey *rsa.PublicKey
 
+var kf []byte
+
 func init() {
-	if f, err := ioutil.ReadFile(publicKeyFilePath); err == nil {
-		if publicKey, err = jwt.ParseRSAPublicKeyFromPEM(f); err != nil {
+	var err error
+	if kf, err = ioutil.ReadFile(publicKeyFilePath); err == nil {
+		if publicKey, err = jwt.ParseRSAPublicKeyFromPEM(kf); err != nil {
 			log.Fatalf("Could not parse public key from pem file")
 		}
 	} else {
