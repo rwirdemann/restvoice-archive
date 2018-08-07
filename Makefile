@@ -13,7 +13,7 @@ test:
 run:
 	go run main.go
 
-deploy: linux
+deploy: test linux
 	ssh restvoice@restvoice.org "killall -q restvoice || true"
 	scp keycloak_key.pub restvoice@restvoice.org:~
 	scp restvoice restvoice@restvoice.org:~
