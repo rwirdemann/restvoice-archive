@@ -16,6 +16,10 @@ type CreateBooking struct {
 	repository        CreateBookingRepository
 }
 
+func (CreateBooking) Cancel() {
+	panic("implement me")
+}
+
 func NewCreateBooking(bookingConsumer foundation.Consumer, invoiceIdConsumer foundation.Consumer, presenter foundation.Presenter, repository CreateBookingRepository) *CreateBooking {
 	return &CreateBooking{
 		repository:        repository,

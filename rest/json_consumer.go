@@ -2,6 +2,7 @@ package rest
 
 import (
 	"encoding/json"
+	"log"
 )
 
 type JSONConsumer struct {
@@ -13,6 +14,8 @@ func NewJSONConsumer(result interface{}) JSONConsumer {
 }
 
 func (c JSONConsumer) Consume(body interface{}) interface{} {
-	json.Unmarshal(body.([]byte), c.result)
+	if err := json.Unmarshal(body.([]byte), c.result); err != nil {
+		log.Println(err)
+	}
 	return c.result
 }

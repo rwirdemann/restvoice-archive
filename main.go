@@ -5,12 +5,14 @@ import (
 	"github.com/gorilla/mux"
 	"fmt"
 	"net/http"
-	"github.com/rs/cors"
 	"github.com/rwirdemann/restvoice/domain"
 	"github.com/rwirdemann/restvoice/rest"
 	"github.com/rwirdemann/restvoice/usecase"
 	"github.com/joho/godotenv"
 	"log"
+	"os"
+	"os/signal"
+	"context"
 )
 
 var (
@@ -45,6 +47,7 @@ func main() {
 
 	// Usecase Layer
 	createInvoice := usecase.NewCreateInvoice(invoiceConsumer, invoicePresenter, repository)
+	updateInvoice := usecase.NewUpdateInvoice(invoiceConsumer, invoiceIdConsumer, repository)
 	createBooking := usecase.NewCreateBooking(bookingConsumer, invoiceIdConsumer, present, repository)
 	getInvoice := usecase.NewGetInvoice(invoiceIdConsumer, expandConsumer, invoicePresenter, repository)
 	getActivities := usecase.NewGetActivities(userConsumer, activitiesPresenter, repository)
@@ -54,11 +57,28 @@ func main() {
 	r.HandleFunc("/version", rest.MakeVersionHandler(githash, buildstamp)).Methods("GET")
 	r.HandleFunc("/invoice", rest.JwtAuth(rest.MakeCreateInvoiceHandler(createInvoice))).Methods("POST")
 	r.HandleFunc("/booking/{id:[0-9]+}", rest.JwtAuth(rest.MakeCreateBookingHandler(createBooking))).Methods("POST")
+	r.HandleFunc("/charge/{id:[0-9]+}", rest.JwtAuth(rest.MakeUpdateInvoiceHandler(updateInvoice))).Methods("PUT")
 	r.HandleFunc("/invoice/{id:[0-9]+}", rest.MakeGetInvoiceHandler(getInvoice)).Methods("GET")
 	r.HandleFunc("/activities", rest.MakeGetActivitiesHandler(getActivities)).Methods("GET")
 	fmt.Println("POST http://localhost:8080/invoice")
 	fmt.Println("GET http://localhost:8080/invoice/{id}")
 	fmt.Println("POST http://localhost:8080/booking/1")
 	fmt.Println("GET http://localhost:8080/activities")
-	http.ListenAndServe(":8080", cors.AllowAll().Handler(r))
+
+	logger := log.New(os.Stdout, "", 0)
+
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt)
+	server := &http.Server{Addr: ":8080", Handler: r}
+	go func() {
+		logger.Printf("Listening on http://0.0.0.0%s\n", ":8080")
+		if err := server.ListenAndServe(); err != nil {
+			logger.Fatal(err)
+		}
+	}()
+	<-stop
+
+	logger.Println("\nShutting down the server...")
+	server.Shutdown(context.Background())
+	logger.Println("Server gracefully stopped")
 }

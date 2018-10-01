@@ -28,3 +28,8 @@ func (u GetActivities) Run(i ...interface{}) interface{} {
 	activities := u.repository.GetActivities(userId)
 	return u.presenter.Present(activities)
 }
+
+func (GetActivities) Cancel() {
+	panic("implement me")
+}
+

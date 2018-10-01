@@ -8,6 +8,8 @@ import (
 	"strings"
 	"github.com/rwirdemann/restvoice/foundation"
 	"fmt"
+	"context"
+	"log"
 )
 
 const contentType = "application/vnd.restvoice.v1.hal+json"
@@ -17,7 +19,7 @@ func NewRouter() *mux.Router {
 	return r
 }
 
-func MakeVersionHandler(githash string, buildstamp string) http.HandlerFunc  {
+func MakeVersionHandler(githash string, buildstamp string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(fmt.Sprintf("Githash: %s Buildstamp: %s\n", githash, buildstamp)))
 	}
@@ -35,6 +37,36 @@ func MakeCreateInvoiceHandler(usecase foundation.Usecase) http.HandlerFunc {
 		w.Header().Set("Content-Type", contentType)
 		body, _ := ioutil.ReadAll(r.Body)
 		w.Write(usecase.Run(body).([]byte))
+	}
+}
+
+func MakeUpdateInvoiceHandler(usecase foundation.Usecase) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+		defer cancel()
+		ctx = context.WithValue(ctx, "request", r)
+		if err := invoiceDo(ctx, usecase); err == nil {
+			w.WriteHeader(http.StatusNoContent)
+		} else {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+	}
+}
+
+func invoiceDo(ctx context.Context, uc foundation.Usecase) error {
+	request := ctx.Value("request").(*http.Request)
+	body, _ := ioutil.ReadAll(request.Body)
+	c := make(chan interface{}, 1)
+	go func() { c <- uc.Run(body, request) }()
+	select {
+	case <-ctx.Done():
+		log.Println("Context timed out.")
+		uc.Cancel()
+		<-c // Wait for usecase to return.
+		return ctx.Err()
+	case <-c:
+		log.Println("Update invoice returned normally.")
+		return nil
 	}
 }
 
@@ -84,4 +116,3 @@ func MakeGetActivitiesHandler(usecase foundation.Usecase) http.HandlerFunc {
 func truncateToSeconds(t time.Time) time.Time {
 	return t.Truncate(time.Duration(time.Second))
 }
-

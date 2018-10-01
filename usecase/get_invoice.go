@@ -36,3 +36,7 @@ func (u GetInvoice) Run(i ...interface{}) interface{} {
 
 	return u.presenter.Present(invoice)
 }
+
+func (GetInvoice) Cancel() {
+	panic("implement me")
+}

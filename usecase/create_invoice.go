@@ -27,3 +27,7 @@ func (u CreateInvoice) Run(i ...interface{}) interface{} {
 	created := u.repository.CreateInvoice(invoice)
 	return u.presenter.Present(created)
 }
+
+func (CreateInvoice) Cancel() {
+	panic("implement me")
+}

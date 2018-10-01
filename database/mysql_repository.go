@@ -14,6 +14,8 @@ type MySQLRepository struct {
 	projects   map[int]domain.Project
 	customers  map[int]domain.Customer
 	activities map[string]map[int]domain.Activity
+	rates map[int]map[int]domain.Rate
+
 }
 
 func (r *MySQLRepository) GetActivities(userId string) []domain.Activity {
@@ -67,6 +69,10 @@ func (r *MySQLRepository) CreateInvoice(invoice *domain.Invoice) domain.Invoice 
 	return *invoice
 }
 
+func (r *MySQLRepository) UpdateInvoice(invoice *domain.Invoice) {
+	r.invoices[invoice.Id] = invoice
+}
+
 func (r *MySQLRepository) CreateBooking(booking domain.Booking) domain.Booking {
 	booking.Id = r.getNextId()
 	if bookings, ok := r.bookings[booking.InvoiceId]; ok {
@@ -89,6 +95,14 @@ func (r *MySQLRepository) CreateActivity(activity domain.Activity) {
 		activities[activity.Id] = activity
 		r.activities[activity.UserId] = activities
 	}
+}
+
+func (r *MySQLRepository) ActivityById(user string, id int) domain.Activity {
+	return r.activities[user][id]
+}
+
+func (r *MySQLRepository) RateByProjectIdAndActivityId(projectId int, activityId int) domain.Rate {
+	return r.rates[projectId][activityId]
 }
 
 func (r *MySQLRepository) getNextId() int {
